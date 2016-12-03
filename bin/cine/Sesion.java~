@@ -1,0 +1,123 @@
+package cine;
+
+public class Sesion
+{
+	private String hora;
+	private int[][] estadoAsientos;
+	private int asientosDisponibles;
+	private int sigIdCompra;
+
+	public Sesion(String horaProyeccion,int filas,int columnas)
+	{
+		hora = horaProyeccion;
+		estadoAsientos = new int[filas][columnas];
+		asientosDisponibles = columnas * filas;
+		sigIdCompra = 1;
+	}
+
+	public String getHora()
+	{
+		return hora;
+	}
+
+	public void comprarEntrada(int fila,int columna)
+	{
+		estadoAsientos[fila - 1][columna - 1] = sigIdCompra;
+		sigIdCompra++;
+		asientosDisponibles--;
+	}
+
+	public int getIdEntrada(int fila,int columna)
+	{
+		return estadoAsientos[fila - 1][columna - 1];
+	}
+
+	public char[][] getEstadoSesion()
+	{
+		char[][] resultado = new char[estadoAsientos.length][estadoAsientos[0].length];
+
+		for (int i = 0 ; i < estadoAsientos.length ; i++) {
+			for (int o = 0 ; o < estadoAsientos[0].length ; o++) {
+				if (estadoAsientos[i][o] == 0) {
+					resultado[i][o] = 'O';
+				} else {
+					resultado[i][o] = '#';
+				}
+			}
+		}
+		return resultado;
+	}
+
+	public int getButacasDisponiblesSesion()
+	{
+		return asientosDisponibles;
+	}
+
+	public String recogerEntradas(int id)
+	{
+		String resultado = hora;
+		for (int i = 0 ; i < estadoAsientos.length ; i++) {
+			for (int o = 0 ; o < estadoAsientos[0].length ; o++) {
+				if (estadoAsientos[i][o] == id) {
+					resultado += "+" + (i + 1) + "," + (o + 1);
+				}
+			}
+		}
+		return resultado;
+	}
+
+	public ButacasContiguas recomendarButacasContiguas(int numButacas)
+	{
+		int fila = 0;
+		int columna = 0;
+		boolean auxiliar = false;
+		for (int i = (estadoAsientos.length + 1 / 2 + 1) ; i < estadoAsientos.length && auxiliar == false ; i++) {
+			for (int o = estadoAsientos[0].length-1 ; o >= estadoAsientos[0].length - numButacas && auxiliar == false ; o--) {
+				if (butacasLibres(numButacas, i, o)) {
+					fila = i+1;
+					columna = (o-(numButacas-1))+1;//columna izquierda
+					auxiliar = true;
+				}
+			}
+		}
+		if (auxiliar == false) {
+			for (int i = ((estadoAsientos.length + 1) / 2) ; i >= 0 && auxiliar == false ; i--) {
+				for (int o = estadoAsientos[0].length-1 ; o >= estadoAsientos[0].length - numButacas && auxiliar == false ; o--) {
+					if (butacasLibres(numButacas, i, o)) {
+						fila = i+1;
+						columna = (o-(numButacas-1))+1;
+						auxiliar = true;
+					}
+				}
+			}
+		}
+		if (auxiliar == false) {
+			return null;
+		} else {
+			ButacasContiguas resultado = new ButacasContiguas(fila, columna, numButacas);
+			return resultado;
+		}
+	}
+	
+
+	private boolean butacasLibres(int numButacas,int fila,int columna)
+	{
+		boolean resultado = true;
+		for (int i = columna ; i > columna - numButacas && resultado ; i--) {
+			if (estadoAsientos[fila][i] != 0) {
+				resultado = false;
+			}
+		}
+		return resultado;
+	}
+
+
+	public void comprarEntradasRecomendadas(ButacasContiguas butacas)
+	{
+		for (int i = butacas.getColumna()-1 ; i < butacas.getColumna() + butacas.getNoButacas()-1 ; i++) {
+			estadoAsientos[butacas.getFila()-1][i] = sigIdCompra;
+		}
+		sigIdCompra++;
+		asientosDisponibles--;
+	}
+}
